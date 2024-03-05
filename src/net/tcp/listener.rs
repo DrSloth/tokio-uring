@@ -57,6 +57,9 @@ impl TcpListener {
         Ok(TcpListener { inner: socket })
     }
 
+    /// Same as bind but also sets SO_REUSEPORT
+    // pub fn 
+
     /// Creates new `TcpListener` from a previously bound `std::net::TcpListener`.
     ///
     /// This function is intended to be used to wrap a TCP listener from the

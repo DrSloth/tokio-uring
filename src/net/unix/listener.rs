@@ -1,6 +1,6 @@
 use super::UnixStream;
-use crate::io::Socket;
-use std::{io, path::Path};
+use crate::io::{Socket, SharedFd};
+use std::{io, path::Path, os::fd::{AsRawFd, FromRawFd, RawFd}};
 
 /// A Unix socket server, listening for connections.
 ///
@@ -69,8 +69,6 @@ impl UnixListener {
     /// std::fs::remove_file(&sock_file).unwrap();
     /// ```
     pub fn local_addr(&self) -> io::Result<std::os::unix::net::SocketAddr> {
-        use std::os::unix::io::{AsRawFd, FromRawFd};
-
         let fd = self.inner.as_raw_fd();
         // SAFETY: Our fd is the handle the kernel has given us for a UnixListener.
         // Create a std::net::UnixListener long enough to call its local_addr method
@@ -94,3 +92,17 @@ impl UnixListener {
         Ok(stream)
     }
 }
+
+
+impl FromRawFd for UnixListener {
+    unsafe fn from_raw_fd(fd: RawFd) -> Self {
+        Self { inner: Socket::from_shared_fd(SharedFd::new(fd)) }
+    }
+}
+
+impl AsRawFd for UnixListener {
+    fn as_raw_fd(&self) -> RawFd {
+        self.inner.as_raw_fd()
+    }
+}
+
