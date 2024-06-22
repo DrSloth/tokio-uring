@@ -234,6 +234,11 @@ impl TcpStream {
         self.inner.shutdown(how)
     }
 
+    /// A close method
+    pub async fn close(&mut self) -> io::Result<()> {
+        self.inner.fd.close().await
+    }
+
     /// Sets the value of the TCP_NODELAY option on this socket.
     ///
     /// If set, this option disables the Nagle algorithm. This means that segments are always sent

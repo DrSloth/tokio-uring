@@ -163,6 +163,7 @@ pub(crate) enum Lifecycle {
     /// The submitter is waiting for the completion of the operation
     Waiting(Waker),
 
+    #[allow(dead_code)]
     /// The submitter no longer has interest in the operation result. The state
     /// must be passed to the driver and held until the operation completes.
     Ignored(Box<dyn std::any::Any>),
