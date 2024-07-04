@@ -234,7 +234,7 @@ impl TcpStream {
         self.inner.shutdown(how)
     }
 
-    /// A close method
+    /// (PL) A close method
     pub async fn close(&mut self) -> io::Result<()> {
         self.inner.fd.close().await
     }
@@ -247,6 +247,16 @@ impl TcpStream {
     /// sending of small packets.
     pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
         self.inner.set_nodelay(nodelay)
+    }
+
+    /// (PL) Split this stream into a read and a write half
+    pub fn split(self) -> (TcpRead, TcpWrite) {
+        (
+            TcpRead {
+                inner: Socket::clone(&self.inner),
+            },
+            TcpWrite { inner: self.inner },
+        )
     }
 }
 
@@ -261,3 +271,39 @@ impl AsRawFd for TcpStream {
         self.inner.as_raw_fd()
     }
 }
+
+/// (PL) Read half of a [`TcpStream`]
+pub struct TcpRead {
+    pub(super) inner: Socket,
+}
+
+impl TcpRead {
+    /// (PL) read function same as [`TcpStream::read`]
+    pub async fn read<T: BoundedBufMut>(&self, buf: T) -> crate::BufResult<usize, T> {
+        self.inner.read(buf).await
+    }
+
+    /// (PL) Closes this tcp reader and writer if both are from the same socket, returns true if
+    /// closed successfully
+    pub async fn close(&mut self, other: TcpWrite) -> io::Result<bool> {
+        if self.inner.ptr_eq(&other.inner) {
+            self.inner.fd.close().await?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+/// (PL) Write half of a [`TcpStream`]
+pub struct TcpWrite {
+    pub(super) inner: Socket,
+}
+
+impl TcpWrite {
+    /// (PL) write_all function same as [`TcpStream::write_all`]
+    pub async fn write_all<T: BoundedBuf>(&self, buf: T) -> crate::BufResult<(), T> {
+        self.inner.write_all(buf).await
+    }
+}
+

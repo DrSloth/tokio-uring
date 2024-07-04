@@ -53,6 +53,11 @@ impl SharedFd {
         }
     }
 
+    /// (PL) Check if these two [`SharedFd`] point to the same `fd`
+    pub(crate) fn ptr_eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.inner, &other.inner)
+    }
+
     /// Returns the RawFd
     pub(crate) fn raw_fd(&self) -> RawFd {
         self.inner.fd

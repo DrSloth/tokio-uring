@@ -27,6 +27,11 @@ pub(crate) fn get_domain(socket_addr: SocketAddr) -> libc::c_int {
 }
 
 impl Socket {
+    /// (PL) Check if these two [`Socket`] point to the same `fd`
+    pub(crate) fn ptr_eq(&self, other: &Self) -> bool {
+        self.fd.ptr_eq(&other.fd)
+    }
+
     pub(crate) fn new(socket_addr: SocketAddr, socket_type: libc::c_int) -> io::Result<Socket> {
         let socket_type = socket_type | libc::SOCK_CLOEXEC;
         let domain = get_domain(socket_addr);
