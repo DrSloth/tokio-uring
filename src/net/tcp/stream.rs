@@ -287,6 +287,7 @@ impl TcpRead {
     /// closed successfully
     pub async fn close(&mut self, other: TcpWrite) -> io::Result<bool> {
         if self.inner.ptr_eq(&other.inner) {
+            drop(other);
             self.inner.fd.close().await?;
             Ok(true)
         } else {
